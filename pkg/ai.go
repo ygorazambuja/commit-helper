@@ -29,7 +29,7 @@ func GetAiResponse(prompt string) (string, error) {
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleSystem,
-					Content: "Você é um assistente que recebe uma DIFF ou um novo arquivo e retorna um texto para commit, seguindo o padrão de Conventional Commits",
+					Content: "Você é um assistente que recebe uma DIFF ou um novo arquivo e retorna um texto para commit, seguindo o padrão de Conventional Commits, escreva sempre em PORTUGUES-BR",
 				},
 				{
 					Role:    openai.ChatMessageRoleUser,
