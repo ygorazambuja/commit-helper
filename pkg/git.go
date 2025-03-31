@@ -51,7 +51,9 @@ func GetNewFiles() ([]string, error) {
 		if strings.HasPrefix(line, untrackedPrefix) {
 			fileName := strings.TrimSpace(line[len(untrackedPrefix):])
 			if fileName != "" {
-				newFiles = append(newFiles, filepath.FromSlash(fileName))
+				if !strings.Contains(fileName, "/") {
+					newFiles = append(newFiles, filepath.FromSlash(fileName))
+				}
 			}
 		}
 	}
