@@ -48,12 +48,9 @@ func GetAiResponse(prompt string) (string, error) {
 	)
 
 	if err != nil {
-		return "", err
-	}
-
-	if err != nil {
 		log.Fatalf("CreateChatCompletion error: %v", err)
 	}
+
 	err = schema.Unmarshal(resp.Choices[0].Message.Content, &result)
 	if err != nil {
 		log.Fatalf("Unmarshal schema error: %v", err)
