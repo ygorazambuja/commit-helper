@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+- Go Project
+- Maintain the Clean Code.
+- Use solid principles, do not create comments
