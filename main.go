@@ -94,7 +94,6 @@ func getModifiedFiles() ([]string, error) {
 		return []string{}, nil
 	}
 
-	// Normalize path separators for Windows
 	files := strings.Split(trimmedOutput, "\n")
 	for i, file := range files {
 		files[i] = filepath.FromSlash(file)
@@ -135,18 +134,15 @@ func getFileDiff(file string) (string, error) {
 }
 
 func getFileContent(file string) (string, error) {
-	// Check if the path is a directory
 	fileInfo, err := os.Stat(file)
 	if err != nil {
 		return "", fmt.Errorf("error checking file %s: %w", file, err)
 	}
 
 	if fileInfo.IsDir() {
-		// Skip directories or list directory contents
 		return fmt.Sprintf("Directory: %s (skipped)", file), nil
 	}
 
-	// Read file content using os.ReadFile instead of cat for better portability
 	content, err := os.ReadFile(file)
 	if err != nil {
 		return "", fmt.Errorf("reading file %s failed: %w", file, err)
@@ -155,14 +151,12 @@ func getFileContent(file string) (string, error) {
 }
 
 func commitFile(file string, commitMessage string) error {
-	// First add the file to the staging area
 	addCmd := exec.Command(gitCommand, "add", file)
 	err := addCmd.Run()
 	if err != nil {
 		return fmt.Errorf("failed to add file %s to staging: %w", file, err)
 	}
 
-	// Then commit the file
 	commitCmd := exec.Command(gitCommand, "commit", "-m", commitMessage, file)
 	err = commitCmd.Run()
 	if err != nil {
