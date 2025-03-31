@@ -43,10 +43,6 @@ func main() {
 		os.Exit(errorExitCode)
 	}
 
-	fmt.Println(modifiedFiles)
-	fmt.Println(newFiles)
-	fmt.Println(deletedFiles)
-
 	files := append(modifiedFiles, append(newFiles, deletedFiles...)...)
 
 	fmt.Println(files)
