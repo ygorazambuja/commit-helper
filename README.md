@@ -16,6 +16,7 @@ A Go tool that automatically generates commit messages for your Git repository c
 
 - Go 1.16 or higher
 - Git installed and available in your PATH
+- OpenAI API key (get one at https://platform.openai.com/api-keys)
 
 ### Using Go Install
 
@@ -30,6 +31,23 @@ git clone https://github.com/ygorazambuja/commit-helper.git
 cd commit-helper
 go build
 ```
+
+## Configuration
+
+Before using Commit Helper, you need to set your OpenAI API key as an environment variable:
+
+```bash
+# For Linux/macOS
+export OPENAI_API_KEY="your-api-key-here"
+
+# For Windows (Command Prompt)
+set OPENAI_API_KEY=your-api-key-here
+
+# For Windows (PowerShell)
+$env:OPENAI_API_KEY="your-api-key-here"
+```
+
+You can add this to your shell profile for permanent configuration.
 
 ## Usage
 
@@ -49,7 +67,7 @@ The tool will:
 
 Commit Helper uses:
 - Git commands to detect changes in your repository
-- AI-powered analysis to understand your code changes
+- OpenAI's GPT models to analyze code changes and generate commit messages in Portuguese (BR)
 - Clean code principles for maintainability and portability
 
 ## Limitations
@@ -57,6 +75,7 @@ Commit Helper uses:
 - Each file is committed separately with its own commit message
 - Large binary files might not get meaningful commit messages
 - Requires an active internet connection for AI processing
+- Requires a valid OpenAI API key with sufficient credits
 
 ## Contributing
 
