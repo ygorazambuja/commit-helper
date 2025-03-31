@@ -30,9 +30,11 @@ func GetModifiedFiles() ([]string, error) {
 		return []string{}, nil
 	}
 
-	files := strings.Split(trimmedOutput, "\n")
-	for i, file := range files {
-		files[i] = filepath.FromSlash(file)
+	var files []string
+	for _, file := range strings.Split(trimmedOutput, "\n") {
+		if file != "" {
+			files = append(files, filepath.FromSlash(file))
+		}
 	}
 
 	return files, nil
@@ -75,7 +77,7 @@ func GetDeletedFiles() ([]string, error) {
 			parts := strings.Fields(line)
 			if len(parts) >= 2 {
 				fileName := parts[len(parts)-1]
-				if fileName != "" {
+				if fileName != "" && !strings.Contains(fileName, "/") {
 					deletedFiles = append(deletedFiles, filepath.FromSlash(fileName))
 				}
 			}
