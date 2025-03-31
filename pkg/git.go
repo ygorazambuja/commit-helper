@@ -111,34 +111,40 @@ func GetFileContent(file string) (string, error) {
 
 func CommitFile(file string, commitMessage string) error {
 	addCmd := exec.Command(gitCommand, "add", file)
-	err := addCmd.Run()
-	if err != nil {
+	if err := addCmd.Run(); err != nil {
 		return fmt.Errorf("failed to add file %s to staging: %w", file, err)
 	}
 
 	commitCmd := exec.Command(gitCommand, "commit", "-m", commitMessage, file)
-	err = commitCmd.Run()
+	output, err := commitCmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to commit file %s: %w", file, err)
+		return fmt.Errorf("failed to commit file %s: %w (output: %s)", file, err, string(output))
 	}
 
-	fmt.Printf("Successfully committed file: %s\n", file)
 	return nil
 }
 
 func CommitDeletedFile(file string, commitMessage string) error {
 	rmCmd := exec.Command(gitCommand, "rm", file)
-	err := rmCmd.Run()
-	if err != nil {
+	if err := rmCmd.Run(); err != nil {
 		return fmt.Errorf("failed to remove file %s from git: %w", file, err)
 	}
 
 	commitCmd := exec.Command(gitCommand, "commit", "-m", commitMessage, file)
-	err = commitCmd.Run()
+	output, err := commitCmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to commit deleted file %s: %w", file, err)
+		return fmt.Errorf("failed to commit deleted file %s: %w (output: %s)", file, err, string(output))
 	}
 
-	fmt.Printf("Successfully committed deleted file: %s\n", file)
 	return nil
+}
+
+// GetCommitInfo returns the short hash of the last commit
+func GetCommitInfo() (string, error) {
+	cmd := exec.Command(gitCommand, "rev-parse", "--short", "HEAD")
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to get commit hash: %w", err)
+	}
+	return strings.TrimSpace(string(output)), nil
 }
