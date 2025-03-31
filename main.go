@@ -22,7 +22,6 @@ const (
 )
 
 func main() {
-	// Check if Git is available
 	if _, err := exec.LookPath(gitCommand); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: Git is not available in the PATH. Please install Git and try again.\n")
 		os.Exit(errorExitCode)
@@ -140,7 +139,6 @@ func getNewFiles() ([]string, error) {
 		if strings.HasPrefix(line, untrackedPrefix) {
 			fileName := strings.TrimSpace(line[len(untrackedPrefix):])
 			if fileName != "" {
-				// Normalize path separators for Windows
 				newFiles = append(newFiles, filepath.FromSlash(fileName))
 			}
 		}
@@ -159,13 +157,11 @@ func getDeletedFiles() ([]string, error) {
 	var deletedFiles []string
 	lines := strings.Split(string(output), "\n")
 	for _, line := range lines {
-		// Look for deleted files which typically appear with "D" status
 		if strings.HasPrefix(line, " D") || strings.HasPrefix(line, "D ") {
 			parts := strings.Fields(line)
 			if len(parts) >= 2 {
 				fileName := parts[len(parts)-1]
 				if fileName != "" {
-					// Normalize path separators for Windows
 					deletedFiles = append(deletedFiles, filepath.FromSlash(fileName))
 				}
 			}
@@ -219,7 +215,6 @@ func commitFile(file string, commitMessage string) error {
 }
 
 func commitDeletedFile(file string, commitMessage string) error {
-	// For deleted files, we need to use git rm instead of git add
 	rmCmd := exec.Command(gitCommand, "rm", file)
 	err := rmCmd.Run()
 	if err != nil {
