@@ -17,6 +17,7 @@ const (
 	nameOnlyFlag    = "--name-only"
 	porcelainFlag   = "--porcelain"
 	untrackedPrefix = "?? "
+	deletedPrefix   = " D "
 	errorExitCode   = 1
 )
 
@@ -39,8 +40,15 @@ func main() {
 		os.Exit(errorExitCode)
 	}
 
+	deletedFiles, err := getDeletedFiles()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error getting deleted files: %v\n", err)
+		os.Exit(errorExitCode)
+	}
+
 	processModifiedFiles(modifiedFiles)
 	processNewFiles(newFiles)
+	processDeletedFiles(deletedFiles)
 }
 
 func processModifiedFiles(files []string) {
@@ -78,6 +86,23 @@ func processNewFiles(files []string) {
 		err = commitFile(file, commitMessage)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error committing file %s: %v\n", file, err)
+			continue
+		}
+	}
+}
+
+func processDeletedFiles(files []string) {
+	for _, file := range files {
+		message := fmt.Sprintf("Delete file: %s", file)
+
+		aiMessage, err := pkg.GetAiResponse(fmt.Sprintf("File deleted: %s", file))
+		if err == nil {
+			message = aiMessage
+		}
+
+		err = commitDeletedFile(file, message)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error committing deleted file %s: %v\n", file, err)
 			continue
 		}
 	}
@@ -124,6 +149,32 @@ func getNewFiles() ([]string, error) {
 	return newFiles, nil
 }
 
+func getDeletedFiles() ([]string, error) {
+	cmd := exec.Command(gitCommand, statusCommand, porcelainFlag)
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("git status command failed: %w", err)
+	}
+
+	var deletedFiles []string
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		// Look for deleted files which typically appear with "D" status
+		if strings.HasPrefix(line, " D") || strings.HasPrefix(line, "D ") {
+			parts := strings.Fields(line)
+			if len(parts) >= 2 {
+				fileName := parts[len(parts)-1]
+				if fileName != "" {
+					// Normalize path separators for Windows
+					deletedFiles = append(deletedFiles, filepath.FromSlash(fileName))
+				}
+			}
+		}
+	}
+
+	return deletedFiles, nil
+}
+
 func getFileDiff(file string) (string, error) {
 	cmd := exec.Command(gitCommand, diffCommand, file)
 	output, err := cmd.Output()
@@ -164,5 +215,23 @@ func commitFile(file string, commitMessage string) error {
 	}
 
 	fmt.Printf("Successfully committed file: %s\n", file)
+	return nil
+}
+
+func commitDeletedFile(file string, commitMessage string) error {
+	// For deleted files, we need to use git rm instead of git add
+	rmCmd := exec.Command(gitCommand, "rm", file)
+	err := rmCmd.Run()
+	if err != nil {
+		return fmt.Errorf("failed to remove file %s from git: %w", file, err)
+	}
+
+	commitCmd := exec.Command(gitCommand, "commit", "-m", commitMessage, file)
+	err = commitCmd.Run()
+	if err != nil {
+		return fmt.Errorf("failed to commit deleted file %s: %w", file, err)
+	}
+
+	fmt.Printf("Successfully committed deleted file: %s\n", file)
 	return nil
 }
