@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/ygorazambuja/commit-helper/pkg"
@@ -16,11 +17,16 @@ const (
 	nameOnlyFlag    = "--name-only"
 	porcelainFlag   = "--porcelain"
 	untrackedPrefix = "?? "
-	catCommand      = "cat"
 	errorExitCode   = 1
 )
 
 func main() {
+	// Check if Git is available
+	if _, err := exec.LookPath(gitCommand); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Git is not available in the PATH. Please install Git and try again.\n")
+		os.Exit(errorExitCode)
+	}
+
 	modifiedFiles, err := getModifiedFiles()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error getting modified files: %v\n", err)
@@ -87,7 +93,13 @@ func getModifiedFiles() ([]string, error) {
 	if trimmedOutput == "" {
 		return []string{}, nil
 	}
+
+	// Normalize path separators for Windows
 	files := strings.Split(trimmedOutput, "\n")
+	for i, file := range files {
+		files[i] = filepath.FromSlash(file)
+	}
+
 	return files, nil
 }
 
@@ -104,7 +116,8 @@ func getNewFiles() ([]string, error) {
 		if strings.HasPrefix(line, untrackedPrefix) {
 			fileName := strings.TrimSpace(line[len(untrackedPrefix):])
 			if fileName != "" {
-				newFiles = append(newFiles, fileName)
+				// Normalize path separators for Windows
+				newFiles = append(newFiles, filepath.FromSlash(fileName))
 			}
 		}
 	}
