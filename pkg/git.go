@@ -17,6 +17,9 @@ const (
 	untrackedPrefix = "?? "
 	deletedPrefix   = " D "
 	errorExitCode   = 1
+	lsFilesCommand  = "ls-files"
+	othersPrefix    = "--others"
+	excludeStandard = "--exclude-standard"
 )
 
 func GetModifiedFiles() ([]string, error) {
@@ -41,26 +44,22 @@ func GetModifiedFiles() ([]string, error) {
 }
 
 func GetNewFiles() ([]string, error) {
-	cmd := exec.Command(gitCommand, statusCommand, porcelainFlag)
+	cmd := exec.Command(gitCommand, lsFilesCommand, othersPrefix, excludeStandard)
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("git status command failed: %w", err)
 	}
 
-	var newFiles []string
-	lines := strings.Split(string(output), "\n")
-	for _, line := range lines {
-		if strings.HasPrefix(line, untrackedPrefix) {
-			fileName := strings.TrimSpace(line[len(untrackedPrefix):])
-			if fileName != "" {
-				if !strings.Contains(fileName, "/") {
-					newFiles = append(newFiles, filepath.FromSlash(fileName))
-				}
-			}
+	newFiles := strings.Split(string(output), "\n")
+
+	var newFilesList []string
+	for _, file := range newFiles {
+		if file != "" {
+			newFilesList = append(newFilesList, file)
 		}
 	}
 
-	return newFiles, nil
+	return newFilesList, nil
 }
 
 func GetDeletedFiles() ([]string, error) {
